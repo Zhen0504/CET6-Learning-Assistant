@@ -41,3 +41,12 @@
 }
 
 作文为空或几乎无有效内容时 score 应很低（≤20）。只输出 JSON，不要解释或前后缀。
+
+
+【学习追踪扩展：必须保留上面全部原字段及其语义】
+额外输出 subscores（各项独立0–100整数，不替代原中文点评）、error_items 数组和 next_focus（最多3项中文训练重点）。
+"subscores": {"task":0,"coherence":0,"vocab":0,"grammar":0},
+"error_items": [{"source_text":"学习者原文中的完整英文句子或完整短句","issue_type":"中文错误类型","tag":"固定标签","explanation":"中文具体原因","suggestion":"保留原意的正确自然英文句子","severity":"major|minor"}],
+"next_focus": ["下一阶段重点"]
+source_text 必须原样摘自学习者作文（包括标点和空白），禁止编造、修正后再当作原句；无法定位的全局问题仅写入原有errors，不进入error_items。无具体错误时error_items=[]。
+tag仅可使用：subject_verb_agreement, article, tense, singular_plural, preposition, clause, non_finite, sentence_structure, word_choice, collocation, chinese_english, coherence, task_response, punctuation, other。

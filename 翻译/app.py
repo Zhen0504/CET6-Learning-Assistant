@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
+from learning_tracking import install_learning, LearningConflict
 from flask import Flask, jsonify, render_template, request
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -235,15 +236,21 @@ def api_evaluate():
         validate_exercise(exercise)
     except ValueError as e:
         return jsonify({"error": "练习数据无效：%s" % e}), 400
+    if not isinstance(user_translation, str):
+        return jsonify({"error": "答案必须是文本"}), 400
     user_msg = build_eval_user(exercise, user_translation)
-    try:
+    def evaluate_once():
         raw = call_deepseek([{"role": "system", "content": load_eval_prompt()}, {"role": "user", "content": user_msg}], model)
-        result = parse_json_loose(raw)
+        return parse_json_loose(raw)
+    try:
+        output = learning_tracker.evaluate(exercise, user_translation, model, data.get("attempt_id"), evaluate_once)
+    except LearningConflict as e:
+        return jsonify({"error": str(e)}), 409
     except ApiError as e:
         return jsonify({"error": e.message}), e.status
-    except (ValueError, json.JSONDecodeError) as e:
-        return jsonify({"error": "AI 评分结果无法解析：%s" % e}), 502
-    return jsonify({"result": result})
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": "AI 评分结果或请求无法解析：%s" % e}), 502
+    return jsonify(output)
 
 
 @app.route("/api/save", methods=["POST"])
@@ -257,6 +264,12 @@ def api_save():
         return jsonify({"ok": True, "path": str(path.relative_to(BASE_DIR.parent))})
     except OSError as e:
         return jsonify({"error": "保存失败：%s" % e}), 500
+
+
+learning_tracker = install_learning(
+    app, "translation", MY_DIR, lambda messages, model: call_deepseek(messages, model),
+    parse_json_loose, PROMPTS_DIR, ApiError,
+)
 
 
 def open_browser(port):

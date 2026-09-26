@@ -14,6 +14,7 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
+from learning_tracking import install_learning, LearningConflict
 from flask import Flask, jsonify, render_template, request
 
 import vocab  # 四六级大纲词表加载 + 超纲词检测（本目录 vocab.py）
@@ -322,18 +323,24 @@ def api_evaluate():
         validate_exercise(exercise)
     except ValueError as e:
         return jsonify({"error": "练习数据无效：%s" % e}), 400
+    if not isinstance(user_essay, str):
+        return jsonify({"error": "答案必须是文本"}), 400
     user_msg = build_eval_user(exercise, user_essay)
-    try:
+    def evaluate_once():
         raw = call_deepseek([{"role": "system", "content": load_eval_prompt()}, {"role": "user", "content": user_msg}], model)
-        result = parse_json_loose(raw)
+        return parse_json_loose(raw)
+    try:
+        output = learning_tracker.evaluate(exercise, user_essay, model, data.get("attempt_id"), evaluate_once)
+    except LearningConflict as e:
+        return jsonify({"error": str(e)}), 409
     except ApiError as e:
         return jsonify({"error": e.message}), e.status
-    except (ValueError, json.JSONDecodeError) as e:
-        return jsonify({"error": "AI 评分结果无法解析：%s" % e}), 502
-    # 服务端兜底统计词数（防 AI 算错）
+    except (ValueError, TypeError) as e:
+        return jsonify({"error": "AI 评分结果或请求无法解析：%s" % e}), 502
     n = len(user_essay.split()) if user_essay.strip() else 0
-    result.setdefault("word_count", n)
-    return jsonify({"result": result, "word_count_server": n})
+    output["result"].setdefault("word_count", n)
+    output["word_count_server"] = n
+    return jsonify(output)
 
 
 @app.route("/api/save", methods=["POST"])
@@ -347,6 +354,12 @@ def api_save():
         return jsonify({"ok": True, "path": str(path.relative_to(BASE_DIR.parent))})
     except OSError as e:
         return jsonify({"error": "保存失败：%s" % e}), 500
+
+
+learning_tracker = install_learning(
+    app, "writing", MY_DIR, lambda messages, model: call_deepseek(messages, model),
+    parse_json_loose, PROMPTS_DIR, ApiError,
+)
 
 
 def open_browser(port):

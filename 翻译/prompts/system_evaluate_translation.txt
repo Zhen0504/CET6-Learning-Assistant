@@ -33,3 +33,12 @@
 }
 
 学习者译文为空或几乎无有效内容时应给很低分。只输出 JSON，不要解释或前后缀。
+
+
+【学习追踪扩展：必须保留上面全部原字段及其语义】
+额外输出 subscores（各项独立0–100整数，不替代原中文点评）、error_items 数组和 next_focus（最多3项中文训练重点）。
+"subscores": {"accuracy":0,"fluency":0,"term_use":0,"grammar":0},
+"error_items": [{"source_cn":"原中文中完整句子或完整短句","user_text":"对应学习者译文片段，无法可靠定位则为空字符串","issue_type":"中文错误类型","tag":"固定标签","explanation":"具体为什么错","suggestion":"该中文句子的推荐英文译法","severity":"major|minor"}],
+"next_focus": ["下一阶段重点"]
+source_cn 必须原样摘自本次中文原文，能通过精确子串匹配（包括标点和空白），禁止编造或改写。无法定位中文的全局意见仅放feedback，不能进入error_items。不要把整个段落作为单句。user_text只能摘录学习者原文，不能臆造。无具体错误时error_items=[]。
+tag仅可使用：omission, addition, mistranslation, subject_error, logic_relation, tense, article, singular_plural, preposition, clause, non_finite, passive_active, long_sentence, word_choice, collocation, chinese_english, proper_noun, culture_loaded_term, number_unit, other。

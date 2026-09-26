@@ -12,7 +12,8 @@
         stage: 'source',
         reached: { source: true },
         answer: '',
-        scored: false
+        scored: false,
+        scoring: false
     };
     const timer = { handle: null, deadline: 0, remain: 0, paused: false, mins: 30 };
 
@@ -83,6 +84,8 @@
 
     function loadExercise(d) {
         d.topic = d.topic || 'CET-6 写作';
+        Learning.resetAttempt();
+        document.getElementById('progressContent').classList.add('hidden');
         state.exercise = d;
         state.answer = ''; state.scored = false;
         document.getElementById('ansBadge').textContent = '✍️ ' + (d.topic || '') + (d.prompt_type ? ' · ' + d.prompt_type : '');
@@ -105,21 +108,27 @@
 
     /* ===== SCORE (AI) ===== */
     async function submitScore() {
+        if (state.scoring) return;
         const ex = state.exercise;
         const answer = document.getElementById('answerInput').value.trim();
         if (!answer) { if (!confirm('你还没有写作文，确定要提交评分吗？')) return; }
+        state.scoring = true;
+        document.getElementById('scoreBtn').disabled = true;
         stopTimer();
         state.answer = answer;
         showLoading('AI 正在评估你的作文…');
         try {
-            const d = await apiPost('/api/evaluate', { exercise: ex, answer, model: currentModel() });
+            const model = currentModel();
+            const attempt_id = await Learning.attempt(ex, answer, model);
+            const d = await apiPost('/api/evaluate', { exercise: ex, answer, model, attempt_id });
             renderScore(d.result || {});
+            Learning.comparison(d);
             renderReference();
             state.scored = true;
             reach('score'); setStage('score');
             toast('评分完成 📊', 'ok');
         } catch (e) { toast(e.message || '评分失败', 'err'); console.error(e); startTimer(); }
-        finally { hideLoading(); }
+        finally { hideLoading(); state.scoring = false; document.getElementById('scoreBtn').disabled = false; }
     }
 
     function renderScore(r) {
@@ -193,6 +202,7 @@
     function restart() {
         if (!confirm('开始新的一篇？当前内容将被替换。')) return;
         stopTimer();
+        Learning.resetAttempt();
         state.exercise = null; state.answer = ''; state.scored = false; state.reached = { source: true };
         setStage('source'); document.getElementById('topicInput').value = '';
         toast('已重置，请输入主题或留空随机出题', 'ok');

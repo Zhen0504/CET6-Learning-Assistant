@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ label }} · {{ '学习分析' if page == 'progress' else '错句复训' }}</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/learning.css">
+    <script src="/static/learning.js" defer></script>
+</head>
+<body data-module="{{ module }}" data-learning-page="{{ page }}">
+    <main class="container">
+        <header class="header">
+            <h1>{{ '📊' if page == 'progress' else '🔁' }} {{ label }} · {{ '学习分析' if page == 'progress' else '错句复训' }}</h1>
+            <p class="header-info">记录每次练习，把真实错误转化为下一次进步</p>
+        </header>
+        <nav class="learning-nav" aria-label="学习导航">
+            <a href="/">✍️ 返回练习</a>
+            <a href="/progress" {% if page == 'progress' %}aria-current="page"{% endif %}>📊 学习分析</a>
+            <a href="/review" {% if page == 'review' %}aria-current="page"{% endif %}>🔁 错句复训</a>
+        </nav>
+        <p id="learningMessage" class="learning-message" role="status" aria-live="polite"></p>
+        {% if page == 'progress' %}
+        <section class="card"><h2>学习概况</h2><div id="learningStats" class="learning-stats"></div></section>
+        <section class="card"><h2>最近成绩与分项趋势</h2><div id="trendContent">正在加载…</div></section>
+        <section class="card"><h2>最近改善</h2><div id="improvementContent"></div><p class="hint">这是描述性比较，不代表相同题目难度下的能力测量。</p></section>
+        <section class="card"><h2>🔥 高频错误与长期弱项</h2><div id="errorsContent"></div><p class="hint">错误次数按结构化标签统计；最近出现次数按练习去重。</p></section>
+        <section class="card"><h2>历史记录</h2><div id="historyContent"></div></section>
+        {% else %}
+        <section class="card">
+            <h2>复习安排</h2>
+            <p>新错句次日进入复习。原句通过后，再完成 2 道迁移句；迁移平均达到 80 分且没有严重错误，才算本轮通过。</p>
+            <p class="hint">按期完整通过后，依次间隔 3 天、7 天；第三轮通过标记掌握。失败退一级，次日再练。</p>
+            <div class="learning-review-controls">
+                <label><input id="allReviews" type="checkbox"> 全部错题（含提前练习与已掌握）</label>
+                <label class="field-label" for="reviewModel">🧠 复训模型</label>
+                <select id="reviewModel">
+                    <option value="" selected>使用 .env 默认</option>
+                    <option value="deepseek-v4-flash">deepseek-v4-flash（快·省）</option>
+                    <option value="deepseek-v4-pro">deepseek-v4-pro（评分更细腻）</option>
+                </select>
+            </div>
+        </section>
+        <section class="card"><h2>选择错句</h2><div id="reviewList">正在加载…</div></section>
+        <section class="card hidden" id="reviewWorkspace"></section>
+        {% endif %}
+    </main>
+</body>
+</html>

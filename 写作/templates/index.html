@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>✍️ CET-6 写作</title>
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/learning.css">
 </head>
 <body>
     <div class="container">
@@ -12,6 +13,10 @@
             <h1>✍️ CET-6 写作</h1>
             <div class="header-info">出题 → 限时写作 → AI 评分（14 档）→ 对照范文与高级表达</div>
         </header>
+        <nav class="learning-nav" aria-label="学习导航">
+            <a href="/progress" target="_blank" rel="noopener">📊 学习分析</a>
+            <a href="/review" target="_blank" rel="noopener">🔁 错句复训</a>
+        </nav>
 
         <div class="card">
             <h2>⚙️ 基础设置</h2>
@@ -83,6 +88,7 @@
         <div class="card hidden" id="stage-score">
             <h2>📊 AI 评分</h2>
             <div id="scoreContent"></div>
+            <div id="progressContent" class="learning-comparison hidden"></div>
             <div id="referenceContent"></div>
             <div style="margin-top:20px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
                 <button class="btn btn-green" onclick="saveExercise()">💾 保存到 my/</button>
@@ -96,6 +102,7 @@
         <div class="spinner"></div>
         <div class="ltext" id="loadingText">AI 思考中…</div>
     </div>
+    <script src="/static/learning.js" defer></script>
     <script src="/static/app.js" defer></script>
 </body>
 </html>
