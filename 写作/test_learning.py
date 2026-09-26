@@ -493,6 +493,63 @@ class TranslationLearningTests(LearningContract, unittest.TestCase):
     folder = "翻译"
     module = "translation"
 
+    def test_full_sentence_fragment_expansion_for_translation(self):
+        source = "近年来，电子商务发展迅速。在一些偏远地区，农村电商帮助农民销售产品，既增加了收入，也缩小了城乡数字差距。网络购物也带来了一些问题。"
+        exercise = {"topic": "sentence", "source": source, "reference": "Full reference."}
+        error = self.error("既增加了收入，也缩小了城乡数字差距", tag="mistranslation")
+        result = self.result(errors=[error])
+        self.store.record_evaluation(exercise, "A translation.", result, str(uuid.uuid4()))
+        row = self.store.history()["items"][0]
+        self.assertEqual(row["error_items"][0]["source_cn"], "在一些偏远地区，农村电商帮助农民销售产品，既增加了收入，也缩小了城乡数字差距。")
+        queue = self.queue()
+        self.assertEqual(queue[0]["original_source"], row["error_items"][0]["source_cn"])
+        self.assertEqual(queue[0]["reference_answer"], "")
+
+    def test_full_sentence_fragment_is_unchanged_when_already_complete(self):
+        source = "第一句包含错误。网络购物也带来了一些问题。下一句继续。"
+        exercise = {"topic": "sentence", "source": source, "reference": "Full reference."}
+        result = self.result(errors=[self.error("网络购物也带来了一些问题。", tag="mistranslation")])
+        self.store.record_evaluation(exercise, "A translation.", result, str(uuid.uuid4()))
+        self.assertEqual(self.store.history()["items"][0]["error_items"][0]["source_cn"], "网络购物也带来了一些问题。")
+
+    def test_missing_translation_fragment_is_not_queued(self):
+        exercise = {"topic": "sentence", "source": "原文中只有这一句。", "reference": "Full reference."}
+        result = self.result(errors=[self.error("原文中不存在的一句话", tag="mistranslation")])
+        self.store.record_evaluation(exercise, "A translation.", result, str(uuid.uuid4()))
+        self.assertFalse(self.store.history()["items"][0]["error_items"][0]["source_valid"])
+        self.assertEqual(self.queue(), [])
+
+    def test_translation_commas_and_semicolons_do_not_split_sentence(self):
+        source = "A，B；C，D。下一句。"
+        exercise = {"topic": "sentence", "source": source, "reference": "Full reference."}
+        result = self.result(errors=[self.error("C，D", tag="mistranslation")])
+        self.store.record_evaluation(exercise, "A translation.", result, str(uuid.uuid4()))
+        self.assertEqual(self.store.history()["items"][0]["error_items"][0]["source_cn"], "A，B；C，D。")
+
+    def test_expanded_reference_is_empty_in_review_and_transfer_requests(self):
+        sentence = "在一些偏远地区，农村电商（rural e-commerce）帮助当地农民销售产品，既增加了收入，也缩小了城乡数字差距。"
+        self.exercise["source"] = "背景介绍。" + sentence + "后续发展。"
+        self.record(self.result(errors=[self.error("既增加了收入，也缩小了城乡数字差距", suggestion="It increases incomes and narrows the gap.")]))
+        item = self.queue()[0]
+        self.assertEqual(item["original_source"], sentence)
+        self.assertEqual(item["reference_answer"], "")
+        self.assertTrue(self.store.history()["items"][0]["error_items"][0]["source_expanded"])
+        original = self.submit(item)
+        self.assertEqual(self.ai.calls[-1][1]["source"], sentence)
+        self.assertEqual(self.ai.calls[-1][1]["reference"], "")
+        self.store.generate_transfer({"review_id":item["review_id"], "round_id":original["item"]["round"]["round_id"]})
+        self.assertEqual(self.ai.calls[-1][1]["original_source"], sentence)
+        self.assertEqual(self.ai.calls[-1][1]["reference"], "")
+
+    def test_sentence_boundaries_preserve_terms_and_punctuation(self):
+        for mark in "。！？!?":
+            with self.subTest(boundary=mark):
+                sentence = "农村电商（rural e-commerce）发展：水果、茶叶销售增加；农民收入增长" + mark
+                self.assertEqual(self.code.expand_to_full_sentence("前句"+mark+sentence+"后句。", "茶叶销售增加"), sentence)
+                self.assertEqual(self.code.expand_to_full_sentence("前句"+mark+sentence+"后句。", sentence), sentence)
+        self.assertEqual(self.code.expand_to_full_sentence("前句。为此，中国不断完善相关法律，推动电子商务在便利生活的同时更加安全、有序", "推动电子商务"), "为此，中国不断完善相关法律，推动电子商务在便利生活的同时更加安全、有序")
+
+
 
 if __name__ == "__main__":
     unittest.main()

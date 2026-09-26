@@ -90,7 +90,7 @@
         state.answer = ''; state.scored = false;
         document.getElementById('ansBadge').textContent = '✍️ ' + (d.topic || '') + (d.prompt_type ? ' · ' + d.prompt_type : '');
         const outline = (d.outline && d.outline.length)
-            ? `<div class="outline-box"><b>📝 写作思路参考</b><ul>${d.outline.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul></div>` : '';
+            ? `<details class="outline-box"><summary>📝 写作思路参考<span class="outline-expand">（点击展开）</span><span class="outline-collapse">（点击收起）</span></summary><ul>${d.outline.map(o => `<li>${escapeHtml(o)}</li>`).join('')}</ul></details>` : '';
         document.getElementById('promptBox').innerHTML =
             `<div class="source-box">${escapeHtml(d.prompt || '')}</div>` + outline;
         document.getElementById('answerInput').value = '';

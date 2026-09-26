@@ -5,3 +5,5 @@
 严格只输出JSON：
 {"items":[{"source_cn":"新中文句子1","reference":"高质量英文译法1","focus":"原tag"},{"source_cn":"新中文句子2","reference":"高质量英文译法2","focus":"原tag"}]}
 focus必须与输入tag逐字相同。reference仅供服务端评价。
+
+reference可能为空；此时根据完整original_source、tag和explanation确定目标结构并生成迁移句，不把局部错误说明当作完整原句。

@@ -212,6 +212,9 @@
         .key-terms-box h5 { color:#1565c0; margin-bottom:6px; font-size:14px; }
         .key-terms-box ul { margin:0 0 0 18px; line-height:1.9; font-size:13px; color:#37474f; }
         .outline-box { background:#f3e5f5; border-left:4px solid #8e24aa; border-radius:8px; padding:10px 16px; margin-bottom:14px; }
+        .outline-box summary { cursor:pointer; font-weight:700; }
+        .outline-box .outline-collapse, .outline-box[open] .outline-expand { display:none; }
+        .outline-box[open] .outline-collapse { display:inline; }
         .outline-box ul { margin:6px 0 0 18px; line-height:1.8; font-size:13px; color:#4a148c; }
 
         /* toast */

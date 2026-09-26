@@ -38,7 +38,8 @@
 【学习追踪扩展：必须保留上面全部原字段及其语义】
 额外输出 subscores（各项独立0–100整数，不替代原中文点评）、error_items 数组和 next_focus（最多3项中文训练重点）。
 "subscores": {"accuracy":0,"fluency":0,"term_use":0,"grammar":0},
-"error_items": [{"source_cn":"原中文中完整句子或完整短句","user_text":"对应学习者译文片段，无法可靠定位则为空字符串","issue_type":"中文错误类型","tag":"固定标签","explanation":"具体为什么错","suggestion":"该中文句子的推荐英文译法","severity":"major|minor"}],
+"error_items": [{"source_cn":"原中文中包含该错误的完整中文句子","user_text":"对应学习者译文片段，无法可靠定位则为空字符串","issue_type":"中文错误类型","tag":"固定标签","explanation":"具体为什么错","suggestion":"该中文句子的推荐英文译法","severity":"major|minor"}],
 "next_focus": ["下一阶段重点"]
-source_cn 必须原样摘自本次中文原文，能通过精确子串匹配（包括标点和空白），禁止编造或改写。无法定位中文的全局意见仅放feedback，不能进入error_items。不要把整个段落作为单句。user_text只能摘录学习者原文，不能臆造。无具体错误时error_items=[]。
+source_cn 必须原样摘自本次中文原文中包含错误的完整中文句子：从上一处句界之后开始，到下一处句界结束。中文句界只使用“。”、“！”、“？”；英文“!”、“?”也可作为句界。逗号、分号、冒号、顿号都不是句界，禁止只返回短语、从句或逗号前后半句。同一个完整句子有多个独立错误时，允许多个 error_items 使用相同 source_cn。suggestion 应尽量给出整个 source_cn 的自然完整英文译法，而不是只翻译错误片段。
+source_cn 必须原样摘自本次中文原文，能通过精确子串匹配（包括括号、英文术语、标点和空白），禁止编造或改写。无法定位中文的全局意见仅放feedback，不能进入error_items。user_text只能摘录学习者原文，不能臆造。无具体错误时error_items=[]。
 tag仅可使用：omission, addition, mistranslation, subject_error, logic_relation, tense, article, singular_plural, preposition, clause, non_finite, passive_active, long_sentence, word_choice, collocation, chinese_english, proper_noun, culture_loaded_term, number_unit, other。

@@ -102,8 +102,13 @@ const Learning = (() => {
         document.getElementById('learningStats').innerHTML = [['总练习',data.total,'次'],['今日待复训',counts.due,'句'],['学习中',counts.learning,'句'],['已掌握',counts.mastered,'句']].map(([label,n,unit]) => '<div class="eval-card"><h5>' + label + '</h5><strong>' + value(n) + '</strong> ' + unit + '</div>').join('');
         const host = document.getElementById('trendContent');
         if (!recent.length) host.innerHTML = '<p>还没有学习记录。完成一次 AI 评分后，记录会自动保存在本地。</p>';
-        else {
-            host.innerHTML = '<p>' + (recent.length === 1 ? '只有 1 次记录，无法判断趋势。' : recent.length === 2 ? '只有 2 次记录，只显示两次差值，不推断长期趋势。' : '最近最多 10 次记录，按练习先后排列。') + '</p>';
+        else if (recent.length < 3) {
+            const rows = [['score','总分'], ...Object.entries(data.dimensions || {})];
+            host.innerHTML = '<p>' + (recent.length === 1 ? '只有 1 次记录，无法判断趋势。' : '只有 2 次记录，只显示两次差值，不推断长期趋势。') + '</p>' +
+                '<div class="learning-table-wrap"><table class="learning-table"><thead><tr><th>指标</th><th>' + (recent.length === 1 ? '当前' : '上次') + '</th>' + (recent.length === 2 ? '<th>本次</th><th>变化</th>' : '') + '</tr></thead><tbody>' +
+                rows.map(([key,label]) => { const prev = key === 'score' ? recent[0].score : (recent[0].subscores || {})[key]; const current = recent.length === 2 ? (key === 'score' ? recent[1].score : (recent[1].subscores || {})[key]) : null; const change = current == null || prev == null ? '数据不足' : delta(current - prev); return '<tr><td>' + escape(label) + '</td><td>' + value(prev) + '</td>' + (recent.length === 2 ? '<td>' + value(current) + '</td><td>' + change + '</td>' : '') + '</tr>'; }).join('') + '</tbody></table></div>';
+        } else {
+            host.innerHTML = '<p>最近最多 10 次记录，按练习先后排列。</p>';
             for (const [key,label] of Object.entries({score:'总分',...(data.dimensions || {})})) {
                 const section = document.createElement('section'); section.className = 'learning-trend';
                 const heading = document.createElement('h3'); heading.textContent = label;

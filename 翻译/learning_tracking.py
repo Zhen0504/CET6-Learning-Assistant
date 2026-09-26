@@ -39,6 +39,21 @@ def strings(value):
     return [x for x in value if isinstance(x, str)] if isinstance(value, list) else []
 
 
+def expand_to_full_sentence(full_source, fragment):
+    """Expand an exact error fragment to its surrounding sentence."""
+    if not isinstance(full_source, str) or not isinstance(fragment, str) or not fragment or fragment not in full_source:
+        return None
+    start_at = full_source.find(fragment)
+    end_at = start_at + len(fragment)
+    boundaries = '。！？!?'
+    left = max((full_source.rfind(mark, 0, start_at) for mark in boundaries), default=-1) + 1
+    right = end_at
+    if full_source[end_at - 1] not in boundaries:
+        right_candidates = [pos for mark in boundaries if (pos := full_source.find(mark, end_at)) != -1]
+        right = min(right_candidates) + 1 if right_candidates else len(full_source)
+    return full_source[left:right]
+
+
 def stamp():
     return datetime.now(timezone.utc).isoformat()
 
@@ -133,6 +148,11 @@ class LearningStore:
             error['tag'] = entry.get('tag') if entry.get('tag') in TAGS[self.module] else 'other'
             error['severity'] = 'major' if entry.get('severity') == 'major' else 'minor'
             error['source_valid'] = bool(error[key].strip()) and error[key] in source
+            if self.module == 'translation' and error['source_valid']:
+                expanded = expand_to_full_sentence(source, error[key])
+                if expanded:
+                    error[key] = expanded
+                    error['source_expanded'] = expanded != text(entry.get('source_cn'))
             if self.module == 'translation':
                 user_text = text(entry.get('user_text'))
                 error['user_text'] = user_text if user_text in answer else ''
@@ -175,10 +195,13 @@ class LearningStore:
                     continue
                 tag = error['tag']
                 recurrence = any(x['tag'] == tag and x.get('mastered_at') and x['mastered_at'] <= record['created_at'] for x in queue)
+                reference_answer = error['suggestion']
+                if self.module == 'translation' and error.get('source_expanded'):
+                    reference_answer = ''
                 queue.append({'review_id':review_id, 'source_history_id':record['id'], 'module':self.module,
                               'tag':tag, 'tag_label':LABELS[tag], 'original_source':original,
                               'old_answer':original if self.module == 'writing' else error.get('user_text', ''),
-                              'reference_answer':error['suggestion'], 'explanation':error['explanation'],
+                              'reference_answer':reference_answer, 'explanation':error['explanation'],
                               'created_at':record['created_at'], 'due_at':plus_days(record['created_at'], 1),
                               'stage':0, 'status':'learning', 'recurrence':recurrence, 'attempts':[], 'rounds':[]})
                 known.add(review_id)
