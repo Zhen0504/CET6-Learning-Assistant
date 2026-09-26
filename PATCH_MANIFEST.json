@@ -1,0 +1,20 @@
+{
+  "version": "2019-2026.06",
+  "created_for": "HCLEMINI/CET6-Full-Process-Learning",
+  "files": [
+    "写作/prompts/system_writing.txt",
+    "写作/prompts/system_evaluate_writing.txt",
+    "翻译/prompts/system_translation.txt",
+    "翻译/prompts/system_evaluate_translation.txt",
+    "选词填空/prompts/system_cloze.txt",
+    "长篇阅读/prompts/system_matching.txt",
+    "仔细阅读/prompts/system_careful.txt",
+    "听力专项训练/prompts/system_generate.txt",
+    "听力专项训练/prompts/spec_conversation.txt",
+    "听力专项训练/prompts/spec_passage.txt",
+    "听力专项训练/prompts/spec_lecture.txt",
+    "听力专项训练/prompts/types.json",
+    "精读训练/prompts/system_generate.txt"
+  ],
+  "note": "Prompt-only update; does not include or modify .env/API keys."
+}

@@ -1,0 +1,20 @@
+{
+  "conversation": {
+    "label": "长对话",
+    "emoji": "💬",
+    "qcount": 4,
+    "words": "约 295–330 词 · 4 题 · W/M 双人对话 · 140–160 wpm"
+  },
+  "passage": {
+    "label": "听力篇章",
+    "emoji": "📢",
+    "qcount": 3,
+    "words": "约 240–270 词 · 3(或4)题 · 单人独白 · 140–160 wpm"
+  },
+  "lecture": {
+    "label": "讲话·报道·讲座",
+    "emoji": "🎓",
+    "qcount": 3,
+    "words": "约 385–420 词 · 3(或4)题 · 单人正式材料 · 140–160 wpm"
+  }
+}

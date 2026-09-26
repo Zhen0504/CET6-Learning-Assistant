@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CET-6 听力练习应用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+                sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .file-input-section {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .file-input-group {
+            margin-bottom: 20px;
+        }
+
+        .file-input-group label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+
+        .file-input:focus {
+            border-color: #2196f3;
+            outline: none;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .exercise-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .context-box {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .context-box h3 {
+            color: #1976d2;
+            margin-bottom: 8px;
+        }
+
+        .audio-controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .audio-main-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .play-button, .stop-button {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .play-button:hover, .stop-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        .stop-button {
+            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+        }
+
+        .stop-button:hover {
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+
+        .speed-control, .voice-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .speed-select, .voice-select {
+            padding: 8px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .voice-controls-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .voice-control-group {
+            background: #fff;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .voice-control-group.female {
+            border-color: #e91e63;
+            background: linear-gradient(135deg, #fce4ec15 0%, #f8bbd915 100%);
+        }
+
+        .voice-control-group.male {
+            border-color: #2196f3;
+            background: linear-gradient(135deg, #e3f2fd15 0%, #bbdefb15 100%);
+        }
+
+        .voice-control-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .voice-control-label.female {
+            color: #c2185b;
+        }
+
+        .voice-control-label.male {
+            color: #1976d2;
+        }
+
+        .voice-select-full {
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .progress-container {
+            margin-top: 15px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            width: 0%;
+            transition: width 0.1s linear;
+            border-radius: 4px;
+        }
+
+        .progress-indicator {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: rgba(33, 150, 243, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+            100% { opacity: 0.3; }
+        }
+
+        .voice-debug {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+
+        .voice-test-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .test-voice-button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .test-female {
+            background: linear-gradient(135deg, #e91e63 0%, #f06292 100%);
+            color: white;
+        }
+
+        .test-male {
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            color: white;
+        }
+
+        .test-voice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .dialogue-toggle {
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .dialogue-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .questions-toggle {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .questions-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .dialogue-section, .questions-section {
+            background: #fafafa;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .dialogue-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .dialogue-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .dialogue-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .dialogue-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .dialogue-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .dialogue-item.woman {
+            background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+            border-left: 4px solid #e91e63;
+        }
+
+        .dialogue-item.man {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid #2196f3;
+        }
+
+        .dialogue-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .speaker-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .speaker-avatar {
+            font-size: 24px;
+        }
+
+        .play-line-button {
+            margin-left: auto;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 5px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .play-line-button:hover {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .dialogue-text {
+            line-height: 1.8;
+            font-size: 15px;
+            color: #424242;
+        }
+
+        .word-highlight {
+            background: rgba(255, 193, 7, 0.5);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .questions-content {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .questions-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .questions-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .questions-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .question-item {
+            margin-bottom: 30px;
+        }
+
+        .question-number {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .question-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #6c757d;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .option-item:hover {
+            border-color: #2196f3;
+            background: #f3f8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.15);
+        }
+
+        .option-item.selected {
+            border-color: #2196f3;
+            background: #e3f2fd;
+            box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+        }
+
+        .option-item.correct {
+            border-color: #4caf50;
+            background: #e8f5e8;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        }
+
+        .option-item.wrong {
+            border-color: #f44336;
+            background: #ffebee;
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.2);
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            background: #6c757d;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        .option-item.correct .option-letter {
+            background: #4caf50;
+        }
+
+        .option-item.wrong .option-letter {
+            background: #f44336;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 15px;
+            line-height: 1.5;
+            color: #424242;
+        }
+
+        .submit-section {
+            border-top: 2px solid #e9ecef;
+            padding-top: 20px;
+            text-align: center;
+        }
+
+        .progress-text {
+            margin-bottom: 15px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .submit-button {
+            background: linear-gradient(135deg, #2196f3 0%, #42a5f5 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(33, 150, 243, 0.3);
+        }
+
+        .submit-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .results-section {
+            border-top: 2px solid #e9ecef;
+            padding-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .score-display {
+            margin-bottom: 20px;
+        }
+
+        .score-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .score-grade {
+            margin-left: 15px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .score-grade.pass {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+
+        .score-grade.fail {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .reset-button {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .reset-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .answer-explanation {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            border-left: 4px solid #ff9800;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .explanation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .explanation-header h4 {
+            margin: 0;
+            color: #e65100;
+            font-size: 16px;
+        }
+
+        .correct-answer {
+            background: #ff9800;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .explanation-text {
+            color: #5d4037;
+            line-height: 1.6;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .content-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .voice-controls-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .file-input-section {
+                padding: 20px;
+            }
+
+            .audio-main-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .play-button, .stop-button {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .speed-control {
+                justify-content: center;
+                margin-top: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🎧 CET-6 听力练习</h1>
+            <div class="header-info">
+                <span>英语六级</span> | <span>听力理解</span>
+            </div>
+        </header>
+
+        <!-- 文件输入区域 -->
+        <div class="file-input-section">
+            <h2>📂 数据输入</h2>
+            <div class="file-input-group">
+                <label for="jsonFileInput">📄 听力JSON数据文件：</label>
+                <input type="file" id="jsonFileInput" class="file-input" accept=".json,.txt" />
+            </div>
+            <div class="file-input-group">
+                <label for="wordsFileInput">📝 单词列表文件（可选）：</label>
+                <input type="file" id="wordsFileInput" class="file-input" accept=".txt" />
+            </div>
+            <div id="loadingIndicator" style="display: none; color: #2196f3; margin-top: 10px;">
+                正在加载数据...
+            </div>
+        </div>
+
+        <!-- 主要内容区域（初始隐藏） -->
+        <div class="main-content" id="mainContent">
+            <div class="exercise-title" id="exerciseTitle"></div>
+
+            <div class="context-box" id="contextBox">
+                <h3>背景信息</h3>
+                <p id="contextText"></p>
+            </div>
+
+            <div class="audio-controls">
+                <div class="audio-main-controls">
+                    <button class="play-button" id="playButton" onclick="playDialogue()" style="display: inline-block;">▶️ 播放对话</button>
+                    <button class="stop-button" id="stopButton" onclick="stopDialogue()" style="display: none;">⏹️ 停止播放</button>
+
+                    <div class="speed-control">
+                        <label>播放速度:</label>
+                        <select class="speed-select" id="speedSelect">
+                            <option value="0.5">0.5x</option>
+                            <option value="0.75">0.75x</option>
+                            <option value="1" selected>1x</option>
+                            <option value="1.25">1.25x</option>
+                            <option value="1.5">1.5x</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="voice-controls-container">
+                    <div class="voice-control-group female">
+                        <div class="voice-control-label female">
+                            <span>👩</span>
+                            <span>女声选择</span>
+                        </div>
+                        <select class="voice-select voice-select-full" id="femaleVoiceSelect"></select>
+                        <div class="voice-test-buttons">
+                            <button class="test-voice-button test-female" onclick="testFemaleVoice()">测试女声</button>
+                        </div>
+                    </div>
+
+                    <div class="voice-control-group male">
+                        <div class="voice-control-label male">
+                            <span>👨</span>
+                            <span>男声选择</span>
+                        </div>
+                        <select class="voice-select voice-select-full" id="maleVoiceSelect"></select>
+                        <div class="voice-test-buttons">
+                            <button class="test-voice-button test-male" onclick="testMaleVoice()">测试男声</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-info">
+                        <span id="currentTime">0:00</span>
+                        <span id="totalTime">0:00</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                        <div class="progress-indicator" id="progressIndicator" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <div class="voice-debug" id="voiceDebug" style="display: none;">
+                    <strong>语音调试信息:</strong>
+                    <div id="debugInfo"></div>
+                </div>
+            </div>
+
+            <div class="content-grid">
+                <div class="dialogue-section">
+                    <button class="dialogue-toggle" onclick="toggleDialogue()">
+                        <span id="dialogueToggleText">👁️ 显示对话内容</span>
+                    </button>
+
+                    <h3 class="section-title">对话内容 💬</h3>
+
+                    <div class="dialogue-content" id="dialogueContent" style="display: none;">
+                        <!-- 动态加载的对话内容将显示在这里 -->
+                    </div>
+                </div>
+
+                <div class="questions-section">
+                    <button class="questions-toggle" onclick="toggleQuestionTitles()">
+                        <span id="questionTitlesToggleText">👁️ 显示题目</span>
+                    </button>
+
+                    <h3 class="section-title">题目 📝</h3>
+
+                    <div class="questions-content" id="questionsContent">
+                        <!-- 动态加载的题目内容将显示在这里 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-section" id="submitSection">
+                <div class="progress-text">已完成 <span id="answeredCount">0</span> / <span id="totalQuestions">0</span> 题</div>
+                <button class="submit-button" id="submitButton" onclick="submitAnswers()" disabled>提交答案</button>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="score-display">
+                    <span class="score-text">得分: <span id="correctCount">0</span> / <span id="totalQuestionsResult">0</span> (<span id="percentage">0</span>%)</span>
+                    <span class="score-grade" id="scoreGrade">❌ 未通过</span>
+                </div>
+                <button class="reset-button" onclick="resetQuiz()">重新练习</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedAnswers = {};
+        let correctAnswers = {};
+        let currentUtterance = null;
+        let dialogueVisible = false;
+        let questionTitlesVisible = false;
+        let voices = [];
+        let femaleVoices = [];
+        let maleVoices = [];
+        let progressInterval = null;
+        let startTime = null;
+        let estimatedDuration = 60000;
+        let isPlaying = false;
+        let currentDialogueIndex = 0;
+        let currentData = null;
+        let unknownWords = [];
+
+        // 文件输入处理
+        document.getElementById('jsonFileInput').addEventListener('change', handleJsonFile);
+        document.getElementById('wordsFileInput').addEventListener('change', handleWordsFile);
+
+        function handleJsonFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.style.display = 'block';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    loadExerciseData(data);
+                    loadingIndicator.style.display = 'none';
+                } catch (error) {
+                    alert('JSON文件格式错误: ' + error.message);
+                    loadingIndicator.style.display = 'none';
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function handleWordsFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const words = e.target.result.split('\n')
+                    .map(word => word.trim().toLowerCase())
+                    .filter(word => word.length > 0);
+                unknownWords = words;
+                if (currentData) {
+                    loadExerciseData(currentData); // 重新加载以应用高亮
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadExerciseData(data) {
+            currentData = data;
+
+            // 显示主要内容
+            document.getElementById('mainContent').style.display = 'block';
+
+            // 设置标题和背景信息
+            document.getElementById('exerciseTitle').textContent = data.title || 'CET-6 听力练习';
+            document.getElementById('contextText').textContent = data.context || '';
+
+            // 加载对话内容
+            loadDialogue(data.dialogue);
+
+            // 加载题目
+            loadQuestions(data.questions);
+
+            // 重置答题状态
+            resetQuiz();
+        }
+
+        function loadDialogue(dialogue) {
+            const dialogueContent = document.getElementById('dialogueContent');
+            dialogueContent.innerHTML = '';
+
+            dialogue.forEach((item, index) => {
+                const dialogueItem = document.createElement('div');
+                dialogueItem.className = `dialogue-item ${item.speaker === 'W' ? 'woman' : 'man'}`;
+
+                const speakerInfo = document.createElement('div');
+                speakerInfo.className = 'speaker-info';
+                speakerInfo.innerHTML = `
+                    <span class="speaker-avatar">${item.speaker === 'W' ? '👩' : '👨'}</span>
+                    <span>${item.speaker === 'W' ? '女士' : '男士'}</span>
+                    <button class="play-line-button" onclick="playLine('${item.content.replace(/'/g, "\\'")}', '${item.speaker === 'W' ? 'woman' : 'man'}')">🔊</button>
+                `;
+
+                const dialogueText = document.createElement('div');
+                dialogueText.className = 'dialogue-text';
+                dialogueText.innerHTML = highlightWords(item.content);
+
+                dialogueItem.appendChild(speakerInfo);
+                dialogueItem.appendChild(dialogueText);
+                dialogueContent.appendChild(dialogueItem);
+            });
+        }
+
+        function loadQuestions(questions) {
+            const questionsContent = document.getElementById('questionsContent');
+            questionsContent.innerHTML = '';
+
+            document.getElementById('totalQuestions').textContent = questions.length;
+            document.getElementById('totalQuestionsResult').textContent = questions.length;
+
+            questions.forEach((question, index) => {
+                correctAnswers[index + 1] = question.answer;
+
+                const questionItem = document.createElement('div');
+                questionItem.className = 'question-item';
+
+                const questionNumber = document.createElement('div');
+                questionNumber.className = 'question-number';
+                questionNumber.textContent = `Q${index + 1}`;
+
+                const questionText = document.createElement('div');
+                questionText.className = 'question-text';
+                questionText.innerHTML = `
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="flex: 1;">${highlightWords(question.question)}</span>
+                        <button class="play-line-button" onclick="playQuestion(${index})" title="播放题目" style="margin-left: 10px;">🔊</button>
+                    </div>
+                `;
+
+                questionItem.appendChild(questionNumber);
+                questionItem.appendChild(questionText);
+
+                // 添加选项
+                Object.entries(question.options).forEach(([key, option]) => {
+                    const optionItem = document.createElement('div');
+                    optionItem.className = 'option-item';
+                    optionItem.onclick = () => selectOption(optionItem, index + 1, key);
+
+                    const optionLetter = document.createElement('div');
+                    optionLetter.className = 'option-letter';
+                    optionLetter.textContent = key;
+
+                    const optionText = document.createElement('div');
+                    optionText.className = 'option-text';
+                    optionText.innerHTML = highlightWords(option);
+
+                    optionItem.appendChild(optionLetter);
+                    optionItem.appendChild(optionText);
+                    questionItem.appendChild(optionItem);
+                });
+
+                // 添加答案解释
+                const explanation = document.createElement('div');
+                explanation.className = 'answer-explanation';
+                explanation.id = `explanation${index + 1}`;
+                explanation.style.display = 'none';
+                explanation.innerHTML = `
+                    <div class="explanation-header">
+                        <h4>答案解析</h4>
+                        <div class="correct-answer">正确答案: ${question.answer}</div>
+                    </div>
+                    <div class="explanation-text">${question.explanation}</div>
+                `;
+
+                questionItem.appendChild(explanation);
+                questionsContent.appendChild(questionItem);
+            });
+        }
+
+        function highlightWords(text) {
+            if (unknownWords.length === 0) return text;
+
+            let highlightedText = text;
+            unknownWords.forEach(word => {
+                const regex = new RegExp(`\\b${word}\\b`, 'gi');
+                highlightedText = highlightedText.replace(regex, `<span class="word-highlight">$\u0026</span>`);
+            });
+
+            return highlightedText;
+        }
+
+        // 语音相关函数
+        function forceInitializeVoices() {
+            speechSynthesis.cancel();
+            voices = speechSynthesis.getVoices();
+
+            femaleVoices = [];
+            maleVoices = [];
+
+            voices.forEach((voice, index) => {
+                const name = voice.name.toLowerCase();
+
+                // 简化的性别判断
+                if (name.includes('female') || name.includes('woman') ||
+                    name.includes('girl') || name.includes('微软晓') ||
+                    name.includes('微软小') || name.includes('natasha') ||
+                    name.includes('jenny') || name.includes('ava') ||
+                    name.includes('emma') || name.includes('mia')) {
+                    femaleVoices.push({voice: voice, index: index});
+                } else {
+                    maleVoices.push({voice: voice, index: index});
+                }
+            });
+
+            populateVoiceSelects();
+        }
+
+        function populateVoiceSelects() {
+            const femaleSelect = document.getElementById('femaleVoiceSelect');
+            const maleSelect = document.getElementById('maleVoiceSelect');
+
+            femaleSelect.innerHTML = '<option value="auto">自动选择</option>';
+            maleSelect.innerHTML = '<option value="auto">自动选择</option>';
+
+            if (femaleVoices.length > 0) {
+                const femaleGroup = document.createElement('optgroup');
+                femaleGroup.label = '女声';
+                femaleVoices.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = `female-${item.index}`;
+                    option.textContent = `${item.voice.name} (${item.voice.lang})`;
+                    femaleGroup.appendChild(option);
+                });
+                femaleSelect.appendChild(femaleGroup);
+            }
+
+            if (maleVoices.length > 0) {
+                const maleGroup = document.createElement('optgroup');
+                maleGroup.label = '男声';
+                maleVoices.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = `male-${item.index}`;
+                    option.textContent = `${item.voice.name} (${item.voice.lang})`;
+                    maleGroup.appendChild(option);
+                });
+                maleSelect.appendChild(maleGroup);
+            }
+        }
+
+        function selectVoice(gender) {
+            const voiceSelect = gender === 'woman' ?
+                document.getElementById('femaleVoiceSelect') :
+                document.getElementById('maleVoiceSelect');
+
+            const voiceSelectValue = voiceSelect.value;
+
+            if (voiceSelectValue !== 'auto') {
+                const [voiceType, voiceIndex] = voiceSelectValue.split('-');
+                const index = parseInt(voiceIndex);
+
+                if (voices[index]) {
+                    return voices[index];
+                }
+            }
+
+            // 自动选择
+            const targetVoices = gender === 'woman' ? femaleVoices : maleVoices;
+
+            if (targetVoices.length > 0) {
+                const enUSVoice = targetVoices.find(item =>
+                    item.voice.lang.toLowerCase().includes('en-us')
+                );
+
+                if (enUSVoice) {
+                    return enUSVoice.voice;
+                } else {
+                    return targetVoices[0].voice;
+                }
+            }
+
+            // 回退到默认语音
+            const englishVoices = voices.filter(v => v.lang.includes('en'));
+            return englishVoices.length > 0 ? englishVoices[0] : voices[0];
+        }
+
+        function createDialogueUtterance(text, gender) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = parseFloat(document.getElementById('speedSelect').value);
+
+            const selectedVoice = selectVoice(gender);
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+            }
+
+            return utterance;
+        }
+
+        function testFemaleVoice() {
+            stopAllPlayback();
+            const testText = "This is a test of the female voice selection.";
+            const utterance = createDialogueUtterance(testText, 'woman');
+            speechSynthesis.speak(utterance);
+        }
+
+        function testMaleVoice() {
+            stopAllPlayback();
+            const testText = "This is a test of the male voice selection.";
+            const utterance = createDialogueUtterance(testText, 'man');
+            speechSynthesis.speak(utterance);
+        }
+
+        // 估算播放时长函数
+        function estimateDuration() {
+            if (!currentData) return 60000; // 默认1分钟
+
+            const speedRate = parseFloat(document.getElementById('speedSelect').value);
+            const wordsPerSecond = 2.5 * speedRate; // 基础语速2.5词/秒，根据速率调整
+
+            let totalWords = 0;
+            let totalPauses = 0;
+
+            // 计算对话的词数和停顿时间
+            if (currentData.dialogue) {
+                currentData.dialogue.forEach(dialogue => {
+                    const words = dialogue.content.split(/\s+/).filter(w => w.length > 0).length;
+                    totalWords += words;
+                });
+                // 对话之间停顿：每句之间300ms
+                totalPauses += (currentData.dialogue.length - 1) * 300;
+            }
+
+            // 计算题目的词数和停顿时间
+            if (currentData.questions) {
+                currentData.questions.forEach((question, index) => {
+                    const words = question.question.split(/\s+/).filter(w => w.length > 0).length;
+                    totalWords += words;
+                });
+                // 题目之间停顿：每题之间10秒
+                totalPauses += (currentData.questions.length) * 10000; // 对话到题目 + 题目之间
+            }
+
+            // 计算朗读时间
+            const readingTime = (totalWords / wordsPerSecond) * 1000; // 转换为毫秒
+            const totalTime = readingTime + totalPauses;
+
+            // 确保至少30秒，最多10分钟
+            return Math.max(30000, Math.min(600000, totalTime));
+        }
+
+        // 对话播放相关函数
+        function playDialogue() {
+            if (!currentData || !currentData.dialogue) return;
+
+            stopDialogue();
+            currentDialogueIndex = 0;
+            isPlaying = true;
+
+            function playNextLine() {
+                if (!isPlaying || currentDialogueIndex >= currentData.dialogue.length) {
+                    if (isPlaying) {
+                        // 对话播放完成，等待10秒后播放题目
+                        setTimeout(() => {
+                            if (isPlaying && currentData.questions) {
+                                playQuestions();
+                            } else {
+                                stopProgress();
+                                document.getElementById('playButton').style.display = 'inline-block';
+                                document.getElementById('stopButton').style.display = 'none';
+                                isPlaying = false;
+                            }
+                        }, 10000);
+                    } else {
+                        stopProgress();
+                        document.getElementById('playButton').style.display = 'inline-block';
+                        document.getElementById('stopButton').style.display = 'none';
+                        isPlaying = false;
+                        currentUtterance = null;
+                    }
+                    return;
+                }
+
+                const dialogue = currentData.dialogue[currentDialogueIndex];
+                const utterance = createDialogueUtterance(dialogue.content,
+                    dialogue.speaker === 'W' ? 'woman' : 'man');
+
+                currentUtterance = utterance;
+
+                utterance.onend = function() {
+                    currentDialogueIndex++;
+                    currentUtterance = null;
+                    if (isPlaying) {
+                        setTimeout(playNextLine, 300);
+                    }
+                };
+
+                utterance.onerror = function(event) {
+                    console.error('语音播放错误:', event);
+                    currentUtterance = null;
+                    currentDialogueIndex++;
+                    if (isPlaying) {
+                        setTimeout(playNextLine, 300);
+                    }
+                };
+
+                speechSynthesis.speak(utterance);
+            }
+
+            document.getElementById('playButton').style.display = 'none';
+            document.getElementById('stopButton').style.display = 'inline-block';
+
+            // 估算并设置总时长
+            estimatedDuration = estimateDuration();
+
+            // 更新UI显示估算的总时长
+            const totalSeconds = Math.floor(estimatedDuration / 1000);
+            document.getElementById('totalTime').textContent = formatTime(totalSeconds);
+
+            startProgress();
+            playNextLine();
+        }
+
+        function playQuestion(questionIndex) {
+            if (!currentData || !currentData.questions || questionIndex >= currentData.questions.length) return;
+
+            // 停止当前播放，防止冲突
+            stopAllPlayback();
+
+            const question = currentData.questions[questionIndex];
+            const questionText = `Question ${questionIndex + 1}. ${question.question}`;
+            const utterance = createDialogueUtterance(questionText, 'woman');
+
+            currentUtterance = utterance;
+
+            utterance.onend = function() {
+                currentUtterance = null;
+            };
+
+            utterance.onerror = function(event) {
+                console.error('单个题目播放错误:', event);
+                currentUtterance = null;
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function stopAllPlayback() {
+            isPlaying = false;
+            speechSynthesis.cancel();
+            currentUtterance = null;
+            currentDialogueIndex = 0;  // 重置索引
+            document.getElementById('playButton').style.display = 'inline-block';
+            document.getElementById('stopButton').style.display = 'none';
+            stopProgress();
+        }
+
+        // 保持向后兼容
+        function stopDialogue() {
+            stopAllPlayback();
+        }
+
+        function playQuestions() {
+            if (!currentData || !currentData.questions || currentData.questions.length === 0) {
+                isPlaying = false;
+                return;
+            }
+
+            let questionIndex = 0;
+
+            function playNextQuestion() {
+                if (!isPlaying || questionIndex >= currentData.questions.length) {
+                    isPlaying = false;
+                    document.getElementById('playButton').style.display = 'inline-block';
+                    document.getElementById('stopButton').style.display = 'none';
+                    return;
+                }
+
+                // 播放当前题目
+                const question = currentData.questions[questionIndex];
+                const questionText = `Question ${questionIndex + 1}. ${question.question}`;
+                const utterance = createDialogueUtterance(questionText, 'woman');
+
+                currentUtterance = utterance;
+
+                utterance.onend = function() {
+                    currentUtterance = null;
+                    questionIndex++;
+
+                    if (isPlaying && questionIndex < currentData.questions.length) {
+                        // 题目之间间隔10秒
+                        setTimeout(() => {
+                            if (isPlaying) {
+                                playNextQuestion();
+                            }
+                        }, 10000);
+                    } else if (isPlaying) {
+                        // 所有题目播放完毕
+                        isPlaying = false;
+                        document.getElementById('playButton').style.display = 'inline-block';
+                        document.getElementById('stopButton').style.display = 'none';
+                        stopProgress();
+                    }
+                };
+
+                utterance.onerror = function(event) {
+                    console.error('题目语音播放错误:', event);
+                    currentUtterance = null;
+                    questionIndex++;
+
+                    if (isPlaying && questionIndex < currentData.questions.length) {
+                        setTimeout(playNextQuestion, 10000);
+                    } else {
+                        isPlaying = false;
+                        document.getElementById('playButton').style.display = 'inline-block';
+                        document.getElementById('stopButton').style.display = 'none';
+                        stopProgress();
+                    }
+                };
+
+                speechSynthesis.speak(utterance);
+            }
+
+            playNextQuestion();
+        }
+
+        function playLine(text, gender) {
+            // 停止当前播放，防止冲突
+            stopAllPlayback();
+
+            const utterance = createDialogueUtterance(text, gender);
+            currentUtterance = utterance;
+
+            utterance.onend = function() {
+                currentUtterance = null;
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+
+        function startProgress() {
+            startTime = Date.now();
+            progressInterval = setInterval(() => {
+                if (speechSynthesis.speaking) {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min((elapsed / estimatedDuration) * 100, 100);
+
+                    document.getElementById('progressFill').style.width = progress + '%';
+                    document.getElementById('progressIndicator').style.width = progress + '%';
+
+                    const currentSeconds = Math.floor(elapsed / 1000);
+                    const totalSeconds = Math.floor(estimatedDuration / 1000);
+                    document.getElementById('currentTime').textContent = formatTime(currentSeconds);
+                    document.getElementById('totalTime').textContent = formatTime(totalSeconds);
+                }
+            }, 100);
+        }
+
+        function stopProgress() {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+
+            setTimeout(() => {
+                document.getElementById('progressFill').style.width = '0%';
+                document.getElementById('progressIndicator').style.width = '0%';
+                document.getElementById('currentTime').textContent = '0:00';
+
+                // 如果当前有数据，显示估算的总时长，否则显示 0:00
+                if (currentData) {
+                    const totalSeconds = Math.floor(estimatedDuration / 1000);
+                    document.getElementById('totalTime').textContent = formatTime(totalSeconds);
+                } else {
+                    document.getElementById('totalTime').textContent = '0:00';
+                }
+            }, 1000);
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${minutes}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // 界面控制函数
+        function toggleDialogue() {
+            const dialogueContent = document.getElementById('dialogueContent');
+            const toggleText = document.getElementById('dialogueToggleText');
+
+            dialogueVisible = !dialogueVisible;
+
+            if (dialogueVisible) {
+                dialogueContent.style.display = 'block';
+                toggleText.textContent = '👁️ 隐藏对话内容';
+            } else {
+                dialogueContent.style.display = 'none';
+                toggleText.textContent = '👁️ 显示对话内容';
+            }
+        }
+
+        function toggleQuestionTitles() {
+            const questionTexts = document.querySelectorAll('.question-text');
+            const toggleText = document.getElementById('questionTitlesToggleText');
+
+            questionTitlesVisible = !questionTitlesVisible;
+
+            questionTexts.forEach(title => {
+                title.style.display = questionTitlesVisible ? 'block' : 'none';
+            });
+
+            toggleText.textContent = questionTitlesVisible ? '👁️ 隐藏题目' : '👁️ 显示题目';
+        }
+
+        function selectOption(element, questionNumber, option) {
+            const questionContainer = element.closest('.question-item');
+            const options = questionContainer.querySelectorAll('.option-item');
+            options.forEach(opt => opt.classList.remove('selected'));
+
+            element.classList.add('selected');
+            selectedAnswers[questionNumber] = option;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const totalQuestions = Object.keys(correctAnswers).length;
+            const answeredCount = Object.keys(selectedAnswers).length;
+
+            document.getElementById('answeredCount').textContent = answeredCount;
+
+            const submitButton = document.getElementById('submitButton');
+            submitButton.disabled = answeredCount !== totalQuestions;
+        }
+
+        function submitAnswers() {
+            let correctCount = 0;
+            const totalQuestions = Object.keys(correctAnswers).length;
+
+            for (let questionNumber in selectedAnswers) {
+                if (selectedAnswers[questionNumber] === correctAnswers[questionNumber]) {
+                    correctCount++;
+                }
+
+                document.getElementById(`explanation${questionNumber}`).style.display = 'block';
+
+                const questionContainer = document.querySelector(`#explanation${questionNumber}`).closest('.question-item');
+                const options = questionContainer.querySelectorAll('.option-item');
+                options.forEach(opt => {
+                    const optionLetter = opt.querySelector('.option-letter').textContent;
+                    if (optionLetter === correctAnswers[questionNumber]) {
+                        opt.classList.add('correct');
+                    } else if (opt.classList.contains('selected') && optionLetter !== correctAnswers[questionNumber]) {
+                        opt.classList.add('wrong');
+                    }
+                });
+            }
+
+            const percentage = Math.round((correctCount / totalQuestions) * 100);
+            document.getElementById('correctCount').textContent = correctCount;
+            document.getElementById('percentage').textContent = percentage;
+
+            const scoreGrade = document.getElementById('scoreGrade');
+            if (percentage >= 60) {
+                scoreGrade.textContent = '✅ 通过';
+                scoreGrade.className = 'score-grade pass';
+            } else {
+                scoreGrade.textContent = '❌ 未通过';
+                scoreGrade.className = 'score-grade fail';
+            }
+
+            document.getElementById('submitSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function resetQuiz() {
+            selectedAnswers = {};
+
+            document.querySelectorAll('.option-item').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'wrong');
+            });
+
+            document.querySelectorAll('.answer-explanation').forEach(exp => {
+                exp.style.display = 'none';
+            });
+
+            updateProgress();
+            document.getElementById('submitSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = forceInitializeVoices;
+            }
+
+            // 延迟初始化语音
+            setTimeout(() => {
+                forceInitializeVoices();
+            }, 100);
+
+            // 监听语速变化，重新估算时长（如果有已加载的数据）
+            document.getElementById('speedSelect').addEventListener('change', function() {
+                if (currentData && !isPlaying) {
+                    const newDuration = estimateDuration();
+                    const totalSeconds = Math.floor(newDuration / 1000);
+                    document.getElementById('totalTime').textContent = formatTime(totalSeconds);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
