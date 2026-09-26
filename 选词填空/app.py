@@ -9,6 +9,7 @@ import json
 import os
 import re
 import threading
+import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +24,7 @@ MY_DIR = BASE_DIR.parent / "my"
 ENV_FILE = BASE_DIR / ".env"
 
 DEEPSEEK_URL = "https://api.deepseek.com/v1/chat/completions"
-DEFAULT_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
+
 DEFAULT_PORT = 5556
 TYPE_LABEL = "选词填空"
 
@@ -44,9 +45,55 @@ def load_env(path):
 
 load_env(ENV_FILE)
 
+DEFAULT_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-flash")
+
 
 def get_key():
     return os.environ.get("DEEPSEEK_API_KEY", "").strip()
+
+
+MODELS_URL = DEEPSEEK_URL.rsplit("/v1/chat/completions", 1)[0] + "/models"
+_MODELS_CACHE = {"expires": 0.0, "key": None, "payload": None}
+_MODELS_LOCK = threading.Lock()
+
+def _models_fallback(warning):
+    configured = os.environ.get("DEEPSEEK_MODEL", "").strip()
+    ids = []
+    for model_id in (configured, DEFAULT_MODEL, "deepseek-flash"):
+        if model_id and model_id not in ids:
+            ids.append(model_id)
+    return {"models": [{"id": model_id, "name": model_id} for model_id in ids],
+            "default_model": DEFAULT_MODEL, "source": "fallback", "warning": warning}
+
+def fetch_models():
+    key = get_key()
+    now = time.time()
+    with _MODELS_LOCK:
+        if _MODELS_CACHE["payload"] is not None and _MODELS_CACHE["key"] == key and _MODELS_CACHE["expires"] > now:
+            return _MODELS_CACHE["payload"]
+    if not key:
+        payload = _models_fallback("未配置 DEEPSEEK_API_KEY，已使用默认模型。")
+    else:
+        try:
+            response = requests.get(MODELS_URL, headers={"Authorization": "Bearer " + key}, timeout=15)
+            if not response.ok:
+                raise ValueError("status %s" % response.status_code)
+            raw = response.json()
+            rows = raw.get("data") if isinstance(raw, dict) else None
+            ids = [row.get("id") for row in rows or [] if isinstance(row, dict) and isinstance(row.get("id"), str) and row.get("id").strip()]
+            ids = list(dict.fromkeys(ids))
+            if not ids:
+                raise ValueError("empty model list")
+            if DEFAULT_MODEL not in ids:
+                ids.insert(0, DEFAULT_MODEL)
+            payload = {"models": [{"id": model_id, "name": model_id} for model_id in ids],
+                       "default_model": DEFAULT_MODEL, "source": "remote"}
+        except Exception:
+            app.logger.warning("model list request failed", exc_info=True)
+            payload = _models_fallback("无法获取实时模型列表，已使用默认模型。")
+    with _MODELS_LOCK:
+        _MODELS_CACHE.update({"expires": time.time() + 600, "key": key, "payload": payload})
+    return payload
 
 
 PROMPTS_DIR = BASE_DIR / "prompts"
@@ -198,6 +245,23 @@ def refine_vocab(exercise, model=None):
     return replaced
 
 
+
+
+def get_vocab_status(enabled, checked=None):
+    try:
+        available = bool(vocab.load_vocab()[0])
+    except Exception:
+        available = False
+    if checked is None:
+        checked = bool(enabled and available)
+    return {
+        "enabled": bool(enabled),
+        "available": available,
+        "checked": bool(checked),
+        "warning": "未找到四六级大纲词表，词汇合规检查已跳过。" if enabled and not available else "",
+    }
+
+
 def validate_exercise(d):
     errs = []
     if not isinstance(d, dict):
@@ -264,6 +328,11 @@ def health():
     return jsonify({"ok": True, "hasKey": bool(get_key()), "model": DEFAULT_MODEL})
 
 
+@app.route("/api/models")
+def api_models():
+    return jsonify(fetch_models())
+
+
 @app.route("/api/generate", methods=["POST"])
 def api_generate():
     data = request.get_json(silent=True) or {}
@@ -299,6 +368,7 @@ def api_generate():
     vocab_check = data.get("vocabCheck")
     if vocab_check is None:
         vocab_check = os.environ.get("CET_VOCAB_CHECK", "1") not in ("0", "false", "False", "")
+    exercise["vocab_status"] = get_vocab_status(vocab_check)
     if vocab_check:
         try:
             replaced = refine_vocab(exercise, model)

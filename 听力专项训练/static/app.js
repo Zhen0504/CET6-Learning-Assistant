@@ -31,6 +31,11 @@
     // ---- voices ----
     let voices = [], femaleVoices = [], maleVoices = [];
 
+
+    function showVocabWarning(status) {
+        if (status && status.warning) setTimeout(() => toast('⚠️ ' + status.warning, ''), 0);
+    }
+
     /* ============== INIT ============== */
     document.addEventListener('DOMContentLoaded', () => {
         // voices
@@ -39,11 +44,33 @@
 
         renderStepper();
         checkHealth();
+        loadModels();
         loadTypes();   // 拉取题型信息后渲染题型卡（数据驱动，跟随 prompts/types.json）
     });
 
     function currentModel() {
         return document.getElementById('modelSelect').value || null; // null => 使用 .env 默认模型
+    }
+
+    async function loadModels() {
+        const select = document.getElementById('modelSelect');
+        if (!select) return;
+        try {
+            const response = await fetch('/api/models');
+            const data = await response.json();
+            const models = Array.isArray(data.models) ? data.models : [];
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '使用默认模型（' + (data.default_model || 'deepseek-flash') + '）';
+            select.appendChild(defaultOption);
+            models.forEach(model => {
+                if (!model || !model.id || model.id === data.default_model) return;
+                const option = document.createElement('option');
+                option.value = model.id; option.textContent = model.name || model.id;
+                select.appendChild(option);
+            });
+        } catch (_) {}
     }
 
     function currentTypes() {
@@ -314,6 +341,7 @@
             const d = await apiPost('/api/generate', payload);
             validateExercise(d.exercise); // 前端兜底校验（后端已校验过）
             loadExercise(d.exercise);
+            showVocabWarning((d.exercise || {}).vocab_status);
             const savedName = d.saved ? d.saved.split(/[\\/]/).pop() : '';
             const adj = (d.exercise && Array.isArray(d.exercise.vocab_adjustments)) ? d.exercise.vocab_adjustments : [];
             const replaced = adj.filter(a => a && a.to);  // 真正做了替换的

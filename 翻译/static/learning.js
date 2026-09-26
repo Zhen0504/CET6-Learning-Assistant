@@ -15,6 +15,26 @@ const Learning = (() => {
     let lastAttempt = null;
     const uuid = () => globalThis.crypto && crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const n = Math.floor(Math.random()*16); return (c === 'x' ? n : (n & 3) | 8).toString(16); });
 
+    async function loadReviewModels() {
+        const select = document.getElementById('reviewModel');
+        if (!select) return;
+        try {
+            const response = await fetch('/api/models');
+            const data = await response.json();
+            select.innerHTML = '';
+            const fallback = document.createElement('option');
+            fallback.value = '';
+            fallback.textContent = '使用默认模型（' + (data.default_model || 'deepseek-flash') + '）';
+            select.appendChild(fallback);
+            (data.models || []).forEach(model => {
+                if (!model || !model.id || model.id === data.default_model) return;
+                const option = document.createElement('option');
+                option.value = model.id; option.textContent = model.name || model.id;
+                select.appendChild(option);
+            });
+        } catch (_) {}
+    }
+
     async function api(url, body) {
         const response = await fetch(url, body === undefined ? {} : {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
         const data = await response.json();
@@ -229,6 +249,7 @@ const Learning = (() => {
     document.addEventListener('DOMContentLoaded',async () => {
         const page = document.body.dataset.learningPage;
         if (!page) return;
+        loadReviewModels();
         try {
             if (page === 'progress') await progress();
             else {

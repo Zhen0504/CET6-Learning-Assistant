@@ -15,9 +15,32 @@
         evaluated: new Set()
     };
 
-    document.addEventListener('DOMContentLoaded', () => { renderStepper(); checkHealth(); });
+    document.addEventListener('DOMContentLoaded', () => { renderStepper(); checkHealth(); loadModels(); });
 
     function currentModel() { return document.getElementById('modelSelect').value || null; }
+
+    async function loadModels() {
+        const select = document.getElementById('modelSelect');
+        if (!select) return;
+        try {
+            const response = await fetch('/api/models');
+            const data = await response.json();
+            const models = Array.isArray(data.models) ? data.models : [];
+            select.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '使用默认模型（' + (data.default_model || 'deepseek-flash') + '）';
+            select.appendChild(defaultOption);
+            models.forEach(model => {
+                if (!model || !model.id || model.id === data.default_model) return;
+                const option = document.createElement('option');
+                option.value = model.id;
+                option.textContent = model.name || model.id;
+                select.appendChild(option);
+            });
+        } catch (_) { /* keep the default placeholder when the optional list is unavailable */ }
+    }
+
 
     async function checkHealth() {
         const backEl = document.getElementById('statusBackend'), keyEl = document.getElementById('statusKey'), hintEl = document.getElementById('statusHint');
@@ -54,6 +77,10 @@
     }
     function reach(s) { state.reached[s] = true; }
 
+
+    function showVocabWarning(status) {
+        if (status && status.warning) setTimeout(() => toast('⚠️ ' + status.warning, ''), 0);
+    }
     /* ===== API ===== */
     async function apiPost(url, body) {
         let res;
@@ -74,6 +101,7 @@
         try {
             const d = await apiPost('/api/generate', { keywords, wordTarget, model: currentModel(), vocabCheck: document.getElementById('vocabChk').checked });
             loadArticle(d.article);
+            showVocabWarning(((d.article || d.exercise) || {}).vocab_status);
             const savedName = d.saved ? d.saved.split(/[\\/]/).pop() : '';
             toast(savedName ? ('已生成并存档：my/' + savedName) : '生成完成，开始逐段翻译', 'ok');
             reach('read'); setStage('read');
